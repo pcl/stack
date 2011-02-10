@@ -42,7 +42,7 @@ end
 
 def push(description)
   id = `uuidgen`.strip
-  record = { :id => id, :last_activity => Time.now, :description => description }
+  record = { 'id' => id, 'last_activity' => Time.now, 'description' => description }
   store(record)
 end
 
