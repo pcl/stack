@@ -84,31 +84,38 @@ def run(args)
   case command
     when :help
       help
+      return 0
 
     when :list
       assert_arg_count(args, 0)
       list
+      return 0
 
     when :push
       if args.count == 0
         throw "expected an item description"
       end
       push(args.join(' '))
+      return 0
 
     when :pop
       assert_arg_count(args, 0)
       pop
+      return 0
 
     when :drop
       assert_arg_count(args, 1)
       drop(args[0].to_i)
+      return 0
 
     when :touch
       assert_arg_count(args, 1)
       touch(args[0].to_i)
+      return 0
   end
 
-  return 0
+  help
+  return -1
 end
 
 exit(run(ARGV.clone))
