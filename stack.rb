@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
+require 'rubygems'
 require 'pp'
 require 'json'
+require 'uuid'
 
 DATADIR="#{ENV['HOME']}/Dropbox/stack-data"
 
@@ -21,7 +23,8 @@ end
 def load_records
   records = []
   Dir.foreach(DATADIR) do |file|
-    if file[0] != '.'
+    # Bafflingly, on Windows, char literal comparison fails.
+    if file[0] != '.' && file[0] != 46  # 46: decimal value of '.'
       records.push(JSON.parse(File.read(File.join(DATADIR, file))))
     end
   end
@@ -41,8 +44,7 @@ def store(record)
 end
 
 def push(description)
-  id = `uuidgen`.strip
-  record = { 'id' => id, 'last_activity' => Time.now, 'description' => description }
+  record = { 'id' => UUID.new.generate, 'last_activity' => Time.now, 'description' => description }
   store(record)
 end
 
@@ -63,7 +65,7 @@ end
 def touch(index)
   records = load_records
   record = records[index - 1]
-  record['last_activity'] = Time.now
+  record['last_activity'] = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
   store(record)
 end
 
