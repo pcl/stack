@@ -1,4 +1,4 @@
-### Stack ###
+# Stack #
 
     "a last in, first out (LIFO) data structure" -- Wikipedia
 
@@ -6,7 +6,7 @@ Stack is a useful little shell script for maintaining a list
 of things you're working on. It stores its data files in 
 Dropbox, so your stack will be in sync across multiple computers.
 
-##### Usage #####
+### Usage ###
 + Add some stuff to your stack
         $ stack push "fix that customer NPE"
         $ stack push finish up documentation
@@ -36,7 +36,7 @@ Dropbox, so your stack will be in sync across multiple computers.
         $ stack list
         1. respond to Peter's email
 
-##### Wishlist #####
+### Wishlist ###
 + classify stack items for easy contextual filtering (work, home, etc.)
 + attach data to stack items:
         $ git diff | stack attach 7
@@ -44,10 +44,10 @@ Dropbox, so your stack will be in sync across multiple computers.
         $ stack remote add jira http://my.jira.install/query
         $ stack pull jira
 
-##### Known Issues #####
+### Known Issues ###
 + stack assumes that your Dropbox folder is at ~/Dropbox
 
-##### Multi-computer Notes #####
+### Multi-computer Notes ###
 
 Stack stores its data files in Dropbox, so your stack will be in
 sync across multiple computers. The stack data is stored in 
