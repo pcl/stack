@@ -7,9 +7,9 @@ of things you're working on. It stores its data files in
 Dropbox, so your stack will be in sync across multiple computers.
 
 ### Installation ###
-1. curl https://github.com/pcl/stack/raw/master/stack.rb > ~/bin/stack
-2. chmod u+x ~/bin/stack
-3. gem install uuid json
+    curl https://github.com/pcl/stack/raw/master/stack.rb > ~/bin/stack
+    chmod u+x ~/bin/stack
+    gem install uuid json
 
 ### Usage ###
 + Add some stuff to your stack
