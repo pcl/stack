@@ -50,7 +50,12 @@ a certain level of integration could be nice.
 ### Wishlist ###
 + classify stack items for easy contextual filtering (work, home, etc.)
 + attach data to stack items:
-        $ git diff | stack attach 7
+        $ git diff | stack attach 1
+        $ stack list
+        1. fix that customer NPE (attachments: a)
+        $ stack cat 1a
+        <diff output here>
+        $ stack cat 1a | git apply
 + load all my assigned tasks from JIRA into stack items:
         $ stack remote add jira http://my.jira.install/query
         $ stack pull jira
