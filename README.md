@@ -9,7 +9,7 @@ Dropbox, so your stack will be in sync across multiple computers.
 ### Installation ###
     curl https://github.com/pcl/stack/raw/master/stack.rb > ~/bin/stack
     chmod u+x ~/bin/stack
-    gem install uuid json
+    gem install uuid json --no-rdoc --no-ri
 
 ### Usage ###
 + Add some stuff to your stack
