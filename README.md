@@ -73,9 +73,10 @@ a certain level of integration could be nice.
 
 ### Multi-computer Notes ###
 
-Stack stores its data files in Dropbox, so your stack will be in
+If you have Dropbox installed (at ~/Dropbox or ~/My Dropbox),
+stack stores its data files in Dropbox, so your stack will be in
 sync across multiple computers. The stack data is stored in 
-~/Dropbox/stack-data. If your Dropbox folder is somewhere else,
+~/Dropbox/.stack-data. If your Dropbox folder is somewhere else,
 you'll need to modify this script to use a different location,
 or add support for configuration via an environment variable or
 ~/.stack file or something.
