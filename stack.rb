@@ -4,8 +4,6 @@ require 'pp'
 require 'json'
 require 'uuid'
 
-DATADIR="#{ENV['HOME']}/Dropbox/stack-data"
-
 def help
   puts <<HELP
 Usage: stack command [arguments]
@@ -18,6 +16,22 @@ Commands:
   drop <index>          remove the specified item from the stack
   touch <index>         move the specified item to the top of the stack"
 HELP
+end
+
+def datadir
+  dropbox = "#{ENV['HOME']}/Dropbox"
+  winDropbox = "#{ENV['HOME']}/My Dropbox"
+  if File.directory?(dropbox)
+    data = "#{dropbox}/.stack-data"
+  elsif File.directory?(winDropbox)
+    data = "#{winDropbox}/.stack-data"
+  end
+
+  if !File.directory?(data)
+    puts "Creating stack data dir at #{data}"
+    Dir.mkdir(data)
+  end
+  return data
 end
 
 def load_records
@@ -120,4 +134,7 @@ def run(args)
   return -1
 end
 
-exit(run(ARGV.clone))
+
+DATADIR = datadir()
+statusCode = run(ARGV.clone)
+exit(statusCode)
