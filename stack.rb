@@ -58,7 +58,7 @@ def store(record)
 end
 
 def push(description)
-  record = { 'id' => UUID.new.generate, 'last_activity' => Time.now, 'description' => description }
+  record = { 'id' => UUID.new.generate, 'last_activity' => now(), 'description' => description }
   store(record)
 end
 
@@ -79,8 +79,12 @@ end
 def touch(index)
   records = load_records
   record = records[index - 1]
-  record['last_activity'] = Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+  record['last_activity'] = now
   store(record)
+end
+
+def now()
+  return Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 end
 
 def assert_arg_count(args, count)
