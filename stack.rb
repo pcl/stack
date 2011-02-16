@@ -58,7 +58,7 @@ def store(record)
 end
 
 def push(description)
-  record = { 'id' => UUID.new.generate, 'last_activity' => now(), 'description' => description }
+  record = { 'id' => UUID.new.generate, 'last_activity' => now, 'description' => description }
   store(record)
 end
 
