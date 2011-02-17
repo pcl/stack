@@ -34,57 +34,99 @@ def datadir
   return data
 end
 
+class Record
+  attr_accessor :id
+  attr_accessor :description
+  attr_accessor :last_activity
+
+  def initialize(description)
+    @id = UUID.new.generate
+    @description = description
+    @last_activity = now
+  end
+
+  def self.load(file)
+    text = File.read(file)
+    json = JSON.parse(text)
+    record = Record.new(json['description'])
+    record.id = json['id']
+    record.last_activity = json['last_activity']
+    return record
+  end
+
+  def to_json
+    json = {}
+    self.instance_variables.each do |var|
+      key = var[1..-1]
+      json[key] = self.instance_variable_get(var.to_sym)
+    end
+    JSON.unparse(json)
+  end
+
+  def store
+    File.open(path, "w") do |file|
+      file.write(to_json)
+    end
+  end
+
+  def delete
+    File.delete(path)
+  end
+
+  def path
+    File.join(DATADIR, @id)
+  end
+
+  def touch
+    @last_activity = now
+  end
+end
+
 def load_records
   records = []
   Dir.foreach(DATADIR) do |file|
     # Bafflingly, on Windows, char literal comparison fails.
     if file[0] != '.' && file[0] != 46  # 46: decimal value of '.'
-      records.push(JSON.parse(File.read(File.join(DATADIR, file))))
+      records.push(Record.load(File.join(DATADIR, file)))
     end
   end
-  records.sort { |a, b| a['last_activity'] <=> b['last_activity'] }
+  records.sort { |a, b| a.last_activity <=> b.last_activity }
 end
 
 def list
   records = load_records()
   reversed = records.reverse
-  reversed.each { |r| puts "#{records.index(r) + 1}. #{r['description']}" }
-end
-
-def store(record)
-  File.open(File.join(DATADIR, record['id']), "w") do |file|
-    file.write(JSON.unparse(record))
-  end
+  reversed.each { |r| puts "#{records.index(r) + 1}. #{r.description}" }
 end
 
 def push(description)
-  record = { 'id' => UUID.new.generate, 'last_activity' => now, 'description' => description }
-  store(record)
+  record = Record.new(description)
+  record.store
 end
 
 def pop
   records = load_records
   record = records.last
-  File.delete(File.join(DATADIR, record['id']))
+  record.delete
 end
 
 # drops the 1-based index from the list
 def drop(index)
   records = load_records
   record = records[index - 1]
-  File.delete(File.join(DATADIR, record['id']))
+  record.delete
 end
 
 # moves the 1-based index to the top of the list
 def touch(index)
   records = load_records
   record = records[index - 1]
-  record['last_activity'] = now
-  store(record)
+  record.touch
+  record.store
 end
 
 def now()
-  return Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
+  Time.now.utc.strftime('%Y-%m-%dT%H:%M:%SZ')
 end
 
 def assert_arg_count(args, count)
