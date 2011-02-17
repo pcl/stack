@@ -14,7 +14,9 @@ Commands:
   push <description>    add a new item to the stack
   pop                   remove the most-recent item from the stack
   drop <index>          remove the specified item from the stack
-  touch <index>         move the specified item to the top of the stack"
+  touch <index>         move the specified item to the top of the stack
+  tag <index> <tag>     add the specified tag to the specified item
+  tag <index> -<tag>    remove the specified tag from the specified item"
 HELP
 end
 
@@ -38,11 +40,13 @@ class Record
   attr_accessor :id
   attr_accessor :description
   attr_accessor :last_activity
+  attr_accessor :tags
 
   def initialize(description)
     @id = UUID.new.generate
     @description = description
     @last_activity = now
+    @tags = []
   end
 
   def self.load(file)
@@ -51,6 +55,7 @@ class Record
     record = Record.new(json['description'])
     record.id = json['id']
     record.last_activity = json['last_activity']
+    record.tags = json['tags']
     return record
   end
 
@@ -80,6 +85,14 @@ class Record
   def touch
     @last_activity = now
   end
+
+  def add_tag(tag)
+    @tags.push(tag)
+  end
+
+  def remove_tag(tag)
+    @tags.delete(tag)
+  end
 end
 
 def load_records
@@ -96,7 +109,13 @@ end
 def list
   records = load_records()
   reversed = records.reverse
-  reversed.each { |r| puts "#{records.index(r) + 1}. #{r.description}" }
+  reversed.each do |r|
+    str = "#{records.index(r) + 1}. #{r.description}"
+    if r.tags != nil && r.tags.length > 0
+      str += "   [#{r.tags.join(',')}]"
+    end
+    puts str
+  end
 end
 
 def push(description)
@@ -123,6 +142,11 @@ def touch(index)
   record = records[index - 1]
   record.touch
   record.store
+end
+
+def item(index)
+  records = load_records
+  records[index - 1]
 end
 
 def now()
@@ -173,6 +197,17 @@ def run(args)
     when :touch
       assert_arg_count(args, 1)
       touch(args[0].to_i)
+      return 0
+
+    when :tag
+      assert_arg_count(args, 2)
+      record = item(args[0].to_i)
+      if args[1].start_with?("-")
+        record.remove_tag(args[1][1..-1])
+      else
+        record.add_tag(args[1])
+      end
+      record.store
       return 0
   end
 
