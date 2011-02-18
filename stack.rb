@@ -9,14 +9,21 @@ def help
 Usage: stack command [arguments]
 
 Commands:
-  help                  show this help message
-  list                  list all items in the stack
-  push <description>    add a new item to the stack
-  pop                   remove the most-recent item from the stack
-  drop <index>          remove the specified item from the stack
-  touch <index>         move the specified item to the top of the stack
-  tag <index> <tag>     add the specified tag to the specified item
-  tag <index> -<tag>    remove the specified tag from the specified item"
+  help                  Show this help message.
+
+  list                  List items in the stack.
+
+  push <description>    Add a new item to the stack.
+  pop                   Remove the most-recent item from the stack.
+  drop <index>          Remove the specified item from the stack.
+  touch <index>         Move the specified item to the top of the stack.
+
+  tag <index> <tag>     Add the specified tag to the specified item.
+  tag <index> -<tag>    Remove the specified tag from the specified item.
+
+  archive <index>       Move the item to the archive. See 'list' behavior below.
+  archive list          List the archived items, ordered by date last touched.
+  archive clear         Clear the archive."
 HELP
 end
 
@@ -41,12 +48,14 @@ class Record
   attr_accessor :description
   attr_accessor :last_activity
   attr_accessor :tags
+  attr_accessor :archived
 
   def initialize(description)
     @id = UUID.new.generate
     @description = description
     @last_activity = now
     @tags = []
+    @archived = false
   end
 
   def self.load(file)
@@ -56,6 +65,7 @@ class Record
     record.id = json['id']
     record.last_activity = json['last_activity']
     record.tags = json['tags']
+    record.archived = json['archived'] || false
     return record
   end
 
@@ -87,30 +97,46 @@ class Record
   end
 
   def add_tag(tag)
-    @tags.push(tag)
+    if !@tags.include?(tag)
+      @tags.push(tag)
+    end
   end
 
   def remove_tag(tag)
     @tags.delete(tag)
   end
-end
 
-def load_records
-  records = []
-  Dir.foreach(DATADIR) do |file|
-    # Bafflingly, on Windows, char literal comparison fails.
-    if file[0] != '.' && file[0] != 46  # 46: decimal value of '.'
-      records.push(Record.load(File.join(DATADIR, file)))
-    end
+  def has_tag?(tag)
+    @tags != nil && @tags.include?(tag)
   end
-  records.sort { |a, b| a.last_activity <=> b.last_activity }
+
+  def self.load_all_records(dir)
+    records = []
+    Dir.foreach(dir) do |file|
+      # Bafflingly, on Windows, char literal comparison fails.
+      if file[0] != '.' && file[0] != 46  # 46: decimal value of '.'
+        records.push(Record.load(File.join(dir, file)))
+      end
+    end
+    records.sort { |a, b| a.last_activity <=> b.last_activity }
+  end
+
+  def self.load_records(dir, archived)
+    records = load_all_records(dir)
+    return records.select { |r| r.archived == archived }
+  end
 end
 
-def list
-  records = load_records()
+def list(archived)
+  records = Record.load_records(DATADIR, archived)
   reversed = records.reverse
   reversed.each do |r|
-    str = "#{records.index(r) + 1}. #{r.description}"
+    if !archived
+      str = "#{records.index(r) + 1}. "
+    else
+      str = ""
+    end
+    str += r.description
     if r.tags != nil && r.tags.length > 0
       str += "   [#{r.tags.join(',')}]"
     end
@@ -124,28 +150,26 @@ def push(description)
 end
 
 def pop
-  records = load_records
+  records = Record.load_records(DATADIR, false)
   record = records.last
   record.delete
 end
 
 # drops the 1-based index from the list
 def drop(index)
-  records = load_records
-  record = records[index - 1]
+  record = item(index)
   record.delete
 end
 
 # moves the 1-based index to the top of the list
 def touch(index)
-  records = load_records
-  record = records[index - 1]
+  record = item(index)
   record.touch
   record.store
 end
 
 def item(index)
-  records = load_records
+  records = Record.load_records(DATADIR, false)
   records[index - 1]
 end
 
@@ -155,7 +179,7 @@ end
 
 def assert_arg_count(args, count)
   if args.count != count
-    throw "expected exactly one index argument; got #{args.count}"
+    throw "expected exactly #{count} argument(s); got #{args.count}"
   end
 end
 
@@ -174,7 +198,7 @@ def run(args)
 
     when :list
       assert_arg_count(args, 0)
-      list
+      list(false)
       return 0
 
     when :push
@@ -209,6 +233,20 @@ def run(args)
       end
       record.store
       return 0
+
+    when :archive
+      assert_arg_count(args, 1)
+      if args[0].to_sym == :list
+        list(true)
+      elsif args[0].to_sym == :clear
+        Record.load_records(DATADIR, true).each { |r| r.delete }
+      else
+        record = item(args[0].to_i)
+        record.archived = true
+        record.store
+      end
+      return 0
+
   end
 
   help
